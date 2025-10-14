@@ -1,26 +1,26 @@
-import React, { useState, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import debounce from 'lodash.debounce';
 import type { Person } from '../../types/Person';
 import classNames from 'classnames';
 
 type Props = {
   people: Person[];
-  onSelect: (person: Person) => void;
+  onSelected: (person: Person) => void;
   onClearSelected: () => void;
+  selectedPerson: Person | null;
   delay?: number;
 };
 
 export const Dropdown: React.FC<Props> = ({
   people,
-  onSelect,
+  onSelected,
   onClearSelected,
+  selectedPerson,
   delay = 300,
 }) => {
   const [inputValue, setInputValue] = useState('');
   const [appliedInputValue, setAppliedInputValue] = useState('');
-  const [isFocus, setIsFocus] = useState(false);
-
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [isOpen, setIsOpen] = useState(false);
 
   const applyInputValue = useMemo(
     () => debounce(setAppliedInputValue, delay),
@@ -30,18 +30,18 @@ export const Dropdown: React.FC<Props> = ({
   useEffect(() => () => applyInputValue.cancel(), [applyInputValue]);
 
   const filteredPeople = useMemo(() => {
-    const query = appliedInputValue.trim().toLowerCase();
-
-    if (isFocus && !query) {
+    if (inputValue.trim() === '') {
       return people;
     }
+
+    const query = appliedInputValue.trim().toLowerCase();
 
     return people.filter(person => {
       const normalizedName = person.name.toLowerCase();
 
       return normalizedName.includes(query);
     });
-  }, [people, appliedInputValue, isFocus]);
+  }, [people, inputValue, appliedInputValue]);
 
   const hasSuggestions = Boolean(filteredPeople.length);
 
@@ -49,8 +49,15 @@ export const Dropdown: React.FC<Props> = ({
     const text = changeEvent.target.value;
     const nextText = text.trim();
 
+    if (text !== inputValue && selectedPerson) {
+      setIsOpen(true);
+    }
+
     setInputValue(text);
-    if (nextText === appliedInputValue) {
+    if (
+      nextText === appliedInputValue.trim() ||
+      (text === '' && nextText === '')
+    ) {
       return;
     }
 
@@ -62,17 +69,15 @@ export const Dropdown: React.FC<Props> = ({
   const handleClick = (currentPerson: Person) => {
     setInputValue(currentPerson.name);
     setAppliedInputValue(currentPerson.name);
-    inputRef.current?.blur();
-    setIsFocus(false);
-
-    onSelect(currentPerson);
+    setIsOpen(false);
+    onSelected(currentPerson);
   };
 
   return (
     <>
       <div
         className={classNames('dropdown', {
-          'is-active': isFocus && hasSuggestions,
+          'is-active': isOpen && hasSuggestions,
         })}
       >
         <div className="dropdown-trigger">
@@ -80,11 +85,10 @@ export const Dropdown: React.FC<Props> = ({
             type="text"
             placeholder="Enter a part of the name"
             className="input"
-            ref={inputRef}
             data-cy="search-input"
             value={inputValue}
-            onFocus={() => setIsFocus(true)}
-            onBlur={() => setIsFocus(false)}
+            onFocus={() => setIsOpen(true)}
+            onBlur={() => setIsOpen(false)}
             onChange={handleChange}
           />
         </div>

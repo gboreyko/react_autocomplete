@@ -7,7 +7,7 @@ import type { Person } from './types/Person';
 export const App: React.FC = () => {
   const [selectedPerson, setSelectedPerson] = useState<Person | null>(null);
 
-  const onSelect = (person: Person) => {
+  const handleClearSelected = (person: Person) => {
     setSelectedPerson(person);
   };
 
@@ -28,8 +28,9 @@ export const App: React.FC = () => {
 
         <Dropdown
           people={peopleFromServer}
-          onSelect={onSelect}
+          onSelected={handleClearSelected}
           onClearSelected={clearSelected}
+          selectedPerson={selectedPerson}
         />
       </main>
     </div>
