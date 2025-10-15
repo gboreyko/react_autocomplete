@@ -51,19 +51,24 @@ export const Dropdown: React.FC<Props> = ({
 
     if (text !== inputValue && selectedPerson) {
       setIsOpen(true);
+      onClearSelected();
+    }
+
+    if (text === '' || nextText === '') {
+      if (inputValue) {
+        setInputValue('');
+      }
+
+      return;
     }
 
     setInputValue(text);
-    if (
-      nextText === appliedInputValue.trim() ||
-      (text === '' && nextText === '')
-    ) {
+
+    if (text !== '' && text !== nextText) {
       return;
     }
 
     applyInputValue(nextText);
-
-    onClearSelected();
   };
 
   const handleClick = (currentPerson: Person) => {
