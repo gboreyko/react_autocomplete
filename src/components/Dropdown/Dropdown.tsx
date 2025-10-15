@@ -64,7 +64,10 @@ export const Dropdown: React.FC<Props> = ({
 
     setInputValue(text);
 
-    if (text !== '' && text !== nextText) {
+    if (
+      (text !== '' && text !== nextText) ||
+      nextText === appliedInputValue.trim()
+    ) {
       return;
     }
 
